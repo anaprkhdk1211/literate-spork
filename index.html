@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Drop Gap Fill Task</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        .container {
+            width: 60%;
+            margin: auto;
+            font-family: Arial, sans-serif;
+        }
+        .task {
+            display: flex;
+            flex-direction: column;
+            margin: 20px 0;
+        }
+        .options {
+            margin-bottom: 20px;
+        }
+        .option {
+            padding: 10px;
+            border: 1px solid black;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            display: inline-block;
+        }
+        .used {
+            text-decoration: line-through;
+            color: grey;
+            cursor: not-allowed;
+        }
+        .sentence {
+            margin-bottom: 10px;
+        }
+        .gap {
+            border-bottom: 2px dashed gray;
+            padding: 5px 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .indicator {
+            margin-left: 5px;
+        }
+        .green {
+            background-color: #c7f9cc;
+        }
+        .red {
+            background-color: #ffc7c7;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .bar {
+            width: 10px;
+            height: 20px;
+            display: inline-block;
+            margin-left: 5px;
+            background-color: grey;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Drag the missing word into the gap</h2>
+        <div class="options" id="options">
+            <div class="option" draggable="true" data-word="be found guilty">be found guilty</div>
+            <div class="option" draggable="true" data-word="share price">share price</div>
+            <div class="option" draggable="true" data-word="introduce a policy">introduce a policy</div>
+            <div class="option" draggable="true" data-word="new season">new season</div>
+            <div class="option" draggable="true" data-word="go bankrupt">go bankrupt</div>
+            <div class="option" draggable="true" data-word="be photographed">be photographed</div>
+            <div class="option" draggable="true" data-word="peace agreement">peace agreement</div>
+            <div class="option" draggable="true" data-word="hold a summit">hold a summit</div>
+            <div class="option" draggable="true" data-word="investigate">investigate</div>
+            <div class="option" draggable="true" data-word="film premiere">film premiere</div>
+            <div class="option" draggable="true" data-word="be elected">be elected</div>
+            <div class="option" draggable="true" data-word="sign a player">sign a player</div>
+        </div>
+        
+        <div class="task" id="task">
+            <div class="sentence">
+                <strong>Crime and justice:</strong> be stabbed / victim / <span class="gap" data-answer="be found guilty,investigate"></span><span class="bar"></span> / <span class="gap" data-answer="be found guilty,investigate"></span><span class="bar"></span>
+            </div>
+            <div class="sentence">
+                <strong>Business and economics:</strong> expand / be taken over / <span class="gap" data-answer="share price,go bankrupt"></span><span class="bar"></span> / <span class="gap" data-answer="share price,go bankrupt"></span><span class="bar"></span>
+            </div>
+            <div class="sentence">
+                <strong>Celebrities and gossip:</strong> have an affair / split up / <span class="gap" data-answer="be photographed,film premiere"></span><span class="bar"></span> / <span class="gap" data-answer="be photographed,film premiere"></span><span class="bar"></span>
+            </div>
+            <div class="sentence">
+                <strong>Foreign affairs:</strong> call a ceasefire / negotiate / <span class="gap" data-answer="peace agreement,hold a summit"></span><span class="bar"></span> / <span class="gap" data-answer="peace agreement,hold a summit"></span><span class="bar"></span>
+            </div>
+            <div class="sentence">
+                <strong>National politics:</strong> resign / deputy mayor / <span class="gap" data-answer="introduce a policy,be elected"></span><span class="bar"></span> / <span class="gap" data-answer="introduce a policy,be elected"></span><span class="bar"></span>
+            </div>
+            <div class="sentence">
+                <strong>Sport:</strong> be injured / be beaten / <span class="gap" data-answer="new season,sign a player"></span><span class="bar"></span> / <span class="gap" data-answer="new season,sign a player"></span><span class="bar"></span>
+            </div>
+        </div>
+        
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const options = document.querySelectorAll('.option');
+        const gaps = document.querySelectorAll('.gap');
+        const resultDiv = document.getElementById('result');
+
+        options.forEach(option => {
+            option.addEventListener('dragstart', dragStart);
+        });
+
+        gaps.forEach(gap => {
+            gap.addEventListener('dragover', dragOver);
+            gap.addEventListener('drop', drop);
+        });
+
+        function dragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.getAttribute('data-word'));
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            const word = e.dataTransfer.getData('text');
+            const answers = e.target.getAttribute('data-answer').split(',');
+            const bar = e.target.nextElementSibling;
+            const option = document.querySelector(`.option[data-word="${word}"]`);
+
+            if (!e.target.textContent) {
+                e.target.textContent = word;
+                option.classList.add('used');
+                option.setAttribute('draggable', 'false');
+
+                if (answers.includes(word)) {
+                    e.target.classList.add('green');
+                    e.target.classList.remove('red');
+                    bar.style.backgroundColor = 'green';
+                } else {
+                    if (!e.target.attempts) {
+                        e.target.attempts = 1;
+                        e.target.classList.add('red');
+                        e.target.classList.remove('green');
+                        bar.style.backgroundColor = 'red';
+                    } else if (e.target.attempts === 1) {
+                        e.target.attempts++;
+                        if (answers.includes(word)) {
+                            e.target.classList.add('green');
+                            e.target.classList.remove('red');
+                            bar.style.background = 'linear-gradient(to bottom, green 50%, red 50%)';
+                        } else {
+                            e.target.classList.add('red');
+                            e.target.classList.remove('green');
+                            bar.style.backgroundColor = 'red';
+                        }
+                    }
+                }
+
+                calculateResult();
+            }
+        }
+
+        function calculateResult() {
+            let correct = 0;
+            gaps.forEach(gap => {
+                if (gap.classList.contains('green')) {
+                    correct++;
+                }
+            });
+            const percentage = Math.round((correct / gaps.length) * 100);
+            resultDiv.textContent = `You got ${correct} out of ${gaps.length} correct. (${percentage}%)`;
+        }
+    </script>
+</body>
+</html>
